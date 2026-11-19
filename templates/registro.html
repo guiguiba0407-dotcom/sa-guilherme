@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta — Controle de Estoque</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Criar Nova Conta</h1>
+            <p>Cadastre-se para acessar o sistema de estoque</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alerta {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('registro') }}" method="POST" class="auth-form">
+            <div class="campo">
+                <label for="nome">Seu Nome</label>
+                <input type="text" id="nome" name="nome" placeholder="Ex: Guilherme Ribeiro" required autofocus>
+            </div>
+            <div class="campo">
+                <label for="usuario">Nome de Usuário (Login)</label>
+                <input type="text" id="usuario" name="usuario" placeholder="Ex: guilherme" required>
+            </div>
+            <div class="campo">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" placeholder="Mínimo 4 caracteres" required>
+            </div>
+            <div class="campo">
+                <label for="confirmar_senha">Confirmar Senha</label>
+                <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Repita a senha" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Cadastrar Conta</button>
+        </form>
+
+        <div class="auth-footer">
+            Já possui uma conta? <a href="{{ url_for('login') }}">Fazer login</a>
+        </div>
+    </div>
+</body>
+</html>

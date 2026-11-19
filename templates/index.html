@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque — SA Guilherme</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+    <header>
+            <div>
+                <h1>Controle de Estoque</h1>
+                <p class="subtitulo">Atalhos: <strong>[1]</strong> Novo Produto • <strong>[W / S]</strong> Navegar na lista</p>
+            </div>
+            <div class="resumo-cards">
+                <div class="badge">
+                    <span>Total de Itens</span>
+                    <strong>{{ total_itens }} un.</strong>
+                </div>
+                <div class="badge destaque">
+                    <span>Valor Total em Estoque</span>
+                    <strong>R$ {{ "%.2f"|format(soma_geral) }}</strong>
+                </div>
+                <div class="user-box">
+                    <span>Olá, <strong>{{ usuario_nome }}</strong></span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sair">Sair</a>
+                </div>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alerta {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="card">
+            <h2>Cadastrar Novo Produto</h2>
+            <form action="{{ url_for('cadastrar') }}" method="POST" class="form-cadastro">
+                <input type="text" id="input-nome" name="nome" placeholder="Nome do produto" required>
+                <input type="number" name="quantidade" placeholder="Quantidade inicial" min="0" required>
+                <input type="text" name="preco" placeholder="Preço unitário (ex: 25,50)" required>
+                <button type="submit" class="btn btn-primary">+ Cadastrar</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>Estoque Atual</h2>
+                <input type="text" id="filtro-busca" placeholder="Filtrar produto por nome ou ID...">
+            </div>
+
+            {% if not produtos %}
+                <p class="vazio">Nenhum produto cadastrado no estoque.</p>
+            {% else %}
+                <div class="tabela-wrapper">
+                    <table id="tabela-produtos">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Produto</th>
+                                <th>Qtd</th>
+                                <th>Preço Unit.</th>
+                                <th>Total Item</th>
+                                <th>Entrada / Saída</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in produtos %}
+                            <tr class="linha-produto" data-index="{{ loop.index0 }}">
+                                <td><span class="id-tag">#{{ p.id }}</span></td>
+                                <td class="nome-prod">{{ p.nome }}</td>
+                                <td>
+                                    <span class="qtd-badge {{ 'baixo' if p.quantidade == 0 else '' }}">
+                                        {{ p.quantidade }}
+                                    </span>
+                                </td>
+                                <td>R$ {{ "%.2f"|format(p.preco) }}</td>
+                                <td><strong>R$ {{ "%.2f"|format(p.quantidade * p.preco) }}</strong></td>
+                                <td>
+                                    <form action="{{ url_for('movimentar', produto_id=p.id) }}" method="POST" class="form-mov">
+                                        <input type="number" name="qtd" min="1" value="1" required>
+                                        <button type="submit" name="acao" value="entrada" class="btn btn-add" title="Entrada (+)">+</button>
+                                        <button type="submit" name="acao" value="saida" class="btn btn-sub" title="Saída (-)">−</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('excluir', produto_id=p.id) }}" method="POST" onsubmit="return confirm('Deseja realmente excluir {{ p.nome }}?');">
+                                        <button type="submit" class="btn btn-del">Excluir</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        const busca = document.getElementById("filtro-busca");
+        const linhas = Array.from(document.querySelectorAll(".linha-produto"));
+
+        if (busca) {
+            busca.addEventListener("input", () => {
+                const termo = busca.value.toLowerCase();
+                linhas.forEach(tr => {
+                    tr.style.display = tr.textContent.toLowerCase().includes(termo) ? "" : "none";
+                });
+            });
+        }
+
+        let selecionado = 0;
+        function atualizarDestaque() {
+            linhas.forEach((tr, i) => tr.classList.toggle("selecionada", i === selecionado));
+        }
+        if (linhas.length > 0) atualizarDestaque();
+
+        document.addEventListener("keydown", (e) => {
+            if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+
+            if (e.key === "1") {
+                e.preventDefault();
+                document.getElementById("input-nome").focus();
+            } else if ((e.key.toLowerCase() === "s" || e.key === "ArrowDown") && linhas.length > 0) {
+                selecionado = Math.min(selecionado + 1, linhas.length - 1);
+                atualizarDestaque();
+                linhas[selecionado].scrollIntoView({ block: "nearest" });
+            } else if ((e.key.toLowerCase() === "w" || e.key === "ArrowUp") && linhas.length > 0) {
+                selecionado = Math.max(selecionado - 1, 0);
+                atualizarDestaque();
+                linhas[selecionado].scrollIntoView({ block: "nearest" });
+            }
+        });
+    </script>
+</body>
+</html>

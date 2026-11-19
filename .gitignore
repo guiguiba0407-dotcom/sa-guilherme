@@ -1,14 +1,4 @@
-# Arquivos e configurações locais
+﻿estoque.db
 __pycache__/
-*.py[cod]
 .venv/
 venv/
-.env
-.env.*
-!.env.example
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-*.sqlite3
-*.db
